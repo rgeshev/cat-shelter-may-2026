@@ -4,7 +4,8 @@
   "description": "SoftUni JS Back-End Course Workshop",
   "main": "index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
   },
   "repository": {
     "type": "git",
@@ -13,7 +14,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/rgeshev/cat-shelter-may-2026/issues"
   },
