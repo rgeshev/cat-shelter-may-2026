@@ -18,7 +18,7 @@ const server = http.createServer(async (req, res) => {
       addBreed(breedName);
     });
 
-    return res.end();
+    return res.writeHead(302, { 'Location': '/' }).end();
   }
 
 
