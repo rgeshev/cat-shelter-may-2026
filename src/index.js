@@ -89,6 +89,7 @@ async function renderHomePage() {
     </li>
     `;
 
+    const cats = readCats();
   const catsContent = `<ul>${readCats()
     .map((cat) => catTemplate(cat))
     .join("\n")}</ul>`;
