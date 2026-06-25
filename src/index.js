@@ -50,20 +50,19 @@ const server = http.createServer(async (req, res) => {
   let htmlContent = "";
   res.writeHead(200, { "Content-Type": "text/html" });
 
-  switch (req.url) {
-    case "/":
-      htmlContent = await renderHomePage();
-      break;
-    case "/cats/add-breed":
-      htmlContent = await fs.readFile("./src/views/addBreed.html", "utf-8");
-      break;
-    case "/cats/add-cat":
-      htmlContent = await renderAddCatPage();
-      break;
-    default:
-      htmlContent = await fs.readFile("./src/views/notFound.html", "utf-8");
-      break;
+
+  if (req.url === "/") {
+    htmlContent = await renderHomePage();
+  } else if (req.url === "/cats/add-breed") {
+    htmlContent = await fs.readFile("./src/views/addBreed.html", "utf-8");
+  } else if (req.url === "/cats/add-cat") {
+    htmlContent = await renderAddCatPage();
+  } else if (req.url.startsWith("/cats/edit-cat")) {
+    htmlContent = await renderEditCatPage();
+  } else {
+    htmlContent = await fs.readFile("./src/views/notFound.html", "utf-8");
   }
+
 
   res.write(htmlContent);
   res.end();
@@ -83,7 +82,7 @@ async function renderHomePage() {
         <p><span>Breed: </span>${cat.breed}</p>
         <p><span>Description: </span>${cat.description}</p>
             <ul class="buttons">
-                <li class="btn edit"><a href="">Change Info</a></li>
+                <li class="btn edit"><a href="/cats/edit-cat/${cat.id}">Change Info</a></li>
                 <li class="btn delete"><a href="">New Home</a></li>
             </ul>
     </li>
@@ -108,6 +107,12 @@ async function renderAddCatPage() {
   const result = htmlContent.replace("{{breedOptions}}", breedOptions);
 
   return result;
+}
+
+async function renderEditCatPage(catId) {
+  const htmlContent = await fs.readFile("./src/views/editCat.html", "utf-8");
+
+  return htmlContent;
 }
 
 function readBodyFormData(req) {
