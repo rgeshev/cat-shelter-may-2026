@@ -74,6 +74,11 @@ const server = http.createServer(async (req, res) => {
 
   if (req.url === "/") {
     htmlContent = await renderHomePage();
+  } else if(req.url.startsWith("/search")) {
+    const urlParams = new URLSearchParams(req.url.split("?")[1]);
+    const name = urlParams.get("name");
+
+    htmlContent = await renderHomePage({ name });
   } else if (req.url === "/cats/add-breed") {
     htmlContent = await fs.readFile("./src/views/addBreed.html", "utf-8");
   } else if (req.url === "/cats/add-cat") {
@@ -97,7 +102,7 @@ server.listen(5000, () =>
   console.log("Server is listening on http://localhost:5000..."),
 );
 
-async function renderHomePage() {
+async function renderHomePage(filter = {}) {
   let htmlContent = await fs.readFile("./src/views/home/index.html", "utf-8");
 
   const catTemplate = (cat) => `
@@ -113,7 +118,8 @@ async function renderHomePage() {
     </li>
     `;
 
-  const cats = readCats();
+    let cat = readCats(filter);
+  
   const catsContent = `<ul>${readCats()
     .map((cat) => catTemplate(cat))
     .join("\n")}</ul>`;
