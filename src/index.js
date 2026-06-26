@@ -2,7 +2,7 @@ import http from "http";
 import fs from "fs/promises";
 import cats from "./cats.js";
 import { addCat, readCats, getCatById, editCat } from "./catService.js";
-import { addBreed, readBreeds } from "./breedService.js";
+import { addBreed, readBreeds, getBreedByName } from "./breedService.js";
 
 const server = http.createServer(async (req, res) => {
   if (req.method === "POST" && req.url === "/cats/add-breed") {
@@ -64,7 +64,6 @@ const server = http.createServer(async (req, res) => {
   let htmlContent = "";
   res.writeHead(200, { "Content-Type": "text/html" });
 
-
   if (req.url === "/") {
     htmlContent = await renderHomePage();
   } else if (req.url === "/cats/add-breed") {
@@ -74,10 +73,13 @@ const server = http.createServer(async (req, res) => {
   } else if (req.url.startsWith("/cats/edit-cat")) {
     const catid = req.url.split("/").pop();
     htmlContent = await renderEditCatPage(catid);
+  } else if (req.url.startsWith("/cats/new-home")) {
+    const catId = req.url.split("/").pop();
+
+    htmlContent = await renderNewHomePage(catId);
   } else {
     htmlContent = await renderNotFoundPage();
   }
-
 
   res.write(htmlContent);
   res.end();
@@ -98,12 +100,12 @@ async function renderHomePage() {
         <p><span>Description: </span>${cat.description}</p>
             <ul class="buttons">
                 <li class="btn edit"><a href="/cats/edit-cat/${cat.id}">Change Info</a></li>
-                <li class="btn delete"><a href="">New Home</a></li>
+                <li class="btn delete"><a href="/cats/new-home/${cat.id}">New Home</a></li>
             </ul>
     </li>
     `;
 
-    const cats = readCats();
+  const cats = readCats();
   const catsContent = `<ul>${readCats()
     .map((cat) => catTemplate(cat))
     .join("\n")}</ul>`;
@@ -129,7 +131,9 @@ async function renderEditCatPage(catId) {
   }
 
   const htmlContent = await fs.readFile("./src/views/editCat.html", "utf-8");
-  const result = htmlContent.replace("{{name}}", cat.name)
+
+  const result = htmlContent
+    .replace("{{name}}", cat.name)
     .replace("{{description}}", cat.description)
     .replace("{{imageUrl}}", cat.image)
     .replace("{{breedOptions}}", renderBreedOptions(cat.breed));
@@ -137,9 +141,34 @@ async function renderEditCatPage(catId) {
   return result;
 }
 
+async function renderNewHomePage(catId) {
+  const cat = getCatById(catId);
+
+  if (!cat) {
+    return renderNotFoundPage();
+  }
+
+  const breed = getBreedByName(cat.breed);
+  const htmlContent = await fs.readFile("./src/views/catShelter.html", "utf-8");
+
+  const result = htmlContent
+    .replaceAll("{{name}}", cat.name)
+    .replace("{{description}}", cat.description)
+    .replace("{{imageUrl}}", cat.image)
+    .replace("{{breedId}}", breed?.id || "")
+    .replace("{{breedName}}", breed?.name || cat.breed);
+
+  return result;
+}
+
 function renderBreedOptions(selectedBreed) {
   const breeds = readBreeds();
-  return breeds.map((breed) => `<option value="${breed.id}"${breed.name === selectedBreed ? ' selected' : ''}>${breed.name}</option>`).join("\n");
+  return breeds
+    .map(
+      (breed) =>
+        `<option value="${breed.id}"${breed.name === selectedBreed ? " selected" : ""}>${breed.name}</option>`,
+    )
+    .join("\n");
 }
 
 async function renderNotFoundPage() {
